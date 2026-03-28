@@ -1,4 +1,4 @@
-import Application from "../models/application.model";
+import Application from "../models/application.model.js";
 
 // GET all applications for logged in user
 export const getApplications = async (req, res) => {
