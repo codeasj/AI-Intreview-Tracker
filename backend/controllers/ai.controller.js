@@ -1,11 +1,12 @@
 import Application from "../models/application.model.js";
 import {
   buildColdEmailPrompt,
+  buildChatSystemPrompt,
   buildFollowUpPrompt,
   buildInterviewQuestionsPrompt,
   buildResumeFeedbackPrompt,
 } from "../utils/promptBuilder.js";
-import { callAI, streamAI } from "../services/ai.services.js";
+import { callAI, streamAI, streamChat } from "../services/ai.services.js";
 import { PDFParse } from "pdf-parse";
 
 export const generateColdEmail = async (req, res) => {
@@ -110,6 +111,38 @@ export const generateResumeFeedback = async (req, res) => {
     res.json({ success: true, result });
   } catch (error) {
     if (res.headersSent) {
+      return res.end();
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// POST /api/ai/chat
+export const chat = async (req, res) => {
+  try {
+    const { messages, message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ message: "Message is required" });
+    }
+
+    const recentHistory = (messages || []).slice(-6);
+    const systemPrompt = buildChatSystemPrompt();
+
+    await streamChat(
+      {
+        systemPrompt,
+        history: recentHistory,
+        message,
+      },
+      0.7,
+      res,
+    );
+  } catch (error) {
+    if (res.headersSent) {
+      res.write(
+        `data: ${JSON.stringify({ error: error.message || "Streaming failed" })}\n\n`,
+      );
       return res.end();
     }
     res.status(500).json({ message: error.message });

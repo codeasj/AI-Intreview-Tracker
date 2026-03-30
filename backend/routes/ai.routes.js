@@ -1,5 +1,6 @@
 import express from "express";
 import {
+    chat,
   generateColdEmail,
   generateFollowUp,
   generateQuestions,
@@ -16,5 +17,6 @@ router.post("/cold-email", generateColdEmail);
 router.post("/followup", generateFollowUp);
 router.post("/questions", generateQuestions);
 router.post("/resume-feedback",  upload.single("resume"),generateResumeFeedback);
+router.post("/chat", chat);
 
 export default router;

@@ -79,3 +79,63 @@ export const streamAI = async (prompt, temperature = 0.7, res) => {
   res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
   res.end();
 };
+
+export const streamChat = async (
+  { systemPrompt, history = [], message },
+  temperature = 0.7,
+  res,
+) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  if (AI_PROVIDER === "openai") {
+    const openai = getOpenAIClient();
+    const stream = await openai.chat.completions.create({
+      model: OPENAI_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...history,
+        { role: "user", content: message },
+      ],
+      temperature,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content || "";
+      if (text) {
+        res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      }
+    }
+  } else {
+    const gemini = getGeminiClient();
+    const geminiHistory = history.map((msg) => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
+
+    const stream = await gemini.models.generateContentStream({
+      model: GEMINI_MODEL,
+      contents: [
+        ...geminiHistory,
+        { role: "user", parts: [{ text: message }] },
+      ],
+      config: {
+        systemInstruction: systemPrompt,
+        temperature,
+      },
+    });
+
+    for await (const chunk of stream) {
+      const text = chunk.text || "";
+      if (text) {
+        res.write(`data: ${JSON.stringify({ text })}\n\n`);
+      }
+    }
+  }
+
+  res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+  res.end();
+};

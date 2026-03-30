@@ -112,3 +112,17 @@ Do not use third person words like "he", "she", "they", or the candidate's name.
 
 Be honest and specific. No generic advice.`;
 };
+
+export const buildChatSystemPrompt = () => {
+  return `You are a helpful job search assistant for a software developer.
+You help with:
+- Interview preparation and tips
+- Resume and cover letter advice
+- Salary negotiation strategies
+- Job search strategies
+- Career growth advice
+- Technical interview questions
+
+Be concise, practical, and encouraging.
+Format responses with markdown when helpful.`;
+};
