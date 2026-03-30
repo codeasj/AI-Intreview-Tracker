@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 const app = express();
+app.set("trust proxy", 1); //for render deployment reverse proxy
 
 //Middleware
 app.use(
