@@ -9,11 +9,16 @@ const generateToken = (userId) => {
 
 const sendTokenResponse = (user, res) => {
   const token = generateToken(user._id);
-  res.cookie("token", token, {
+  const isProduction = process.env.NODE_ENV === "production";
+  const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  };
+
+  res.cookie("token", token, {
+    ...cookieOptions,
   });
   res.json({
     success: true,
@@ -58,7 +63,13 @@ export const login = async (req, res) => {
 }
 
 export const logout = (req, res) => {
-    res.cookie("token", "", {maxAge:0});
+    const isProduction = process.env.NODE_ENV === "production";
+    res.cookie("token", "", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 0,
+    });
     res.json({ success: true, message: "Logged out successfully" });
 }
 
