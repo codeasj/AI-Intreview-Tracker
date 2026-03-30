@@ -18,16 +18,22 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   login: async (email, password) => {
     const res = await authAPI.login({ email, password });
+    localStorage.setItem("token", res.data.token);
     set({ user: res.data.user });
   },
 
   register: async (name, email, password) => {
     const res = await authAPI.register({ name, email, password });
+    localStorage.setItem("token", res.data.token);
     set({ user: res.data.user });
   },
 
   logout: async () => {
-    await authAPI.logout();
+    try {
+      await authAPI.logout();
+    } finally {
+      localStorage.removeItem("token");
+    }
     set({ user: null });
   },
 

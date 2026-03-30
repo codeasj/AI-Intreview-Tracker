@@ -22,6 +22,7 @@ const sendTokenResponse = (user, res) => {
   });
   res.json({
     success: true,
+    token,
     user: { id: user._id, name: user.name, email: user.email },
   });
 };

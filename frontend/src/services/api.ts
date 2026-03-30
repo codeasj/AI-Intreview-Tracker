@@ -1,9 +1,22 @@
 import axios from "axios";
 import { Application, Interview } from "@/types";
 
+const getStoredToken = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("token");
+};
+
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
   withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  const token = getStoredToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const authAPI = {
@@ -58,6 +71,9 @@ export const streamAIRequest = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(getStoredToken()
+          ? { Authorization: `Bearer ${getStoredToken()}` }
+          : {}),
       },
       credentials: "include", // sends cookies
       body: JSON.stringify(data),
@@ -123,6 +139,9 @@ export const streamChatRequest = async (
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...(getStoredToken()
+        ? { Authorization: `Bearer ${getStoredToken()}` }
+        : {}),
     },
     credentials: "include",
     body: JSON.stringify({ messages, message }),
@@ -190,3 +209,4 @@ const getStreamErrorMessage = (error: unknown) => {
 };
 
 export default api;
+export { getStoredToken };
